@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://xmlns.jcp.org/jsf/html"
+	xmlns:f="http://xmlns.jcp.org/jsf/core"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:ui="http://xmlns.jcp.org/jsf/facelets">
+
+<h:head/>
+
+<ui:composition template="_template.xhtml">
+	<ui:define name="titulo">
+		<p:outputPanel>Novo Livro</p:outputPanel>
+	</ui:define>
+	
+	<ui:define name="paginaName">
+		<p:outputPanel>Cadastro de Livros</p:outputPanel>
+	</ui:define>
+	
+	<ui:define name="conteudo">
+	<h:form>
+	<p:messages id="messages"/>
+	<p:fieldset legend="Dados do Livro">
+		<p:panelGrid columns="2">
+		
+		<p:outputLabel value="Titulo" for="titulo" />
+		<p:inputText id="titulo" value="#{livroBean.livro.titulo}" required="true" requiredMessage="Titulo Obrigatorio" 
+			validatorMessage="titulo não pode ser superior a 40">
+			<f:validateLength maximum="40"/>
+			<f:ajax event="blur" render="messages"/>
+		</p:inputText>
+		
+		<p:outputLabel value="ISBN" for="isbn" />
+		<p:inputMask id="isbn" value="#{livroBean.livro.isbn}" validator="#{livroBean.comecaoComDigitoUm}" mask="999-9-99-999999-9"/>
+					
+		<p:outputLabel value="Preço:" for="preco" />
+		<p:inputText id="preco" value="#{livroBean.livro.preco}"
+			validatorMessage="O valor do livro deve estar entre 1 e 1000">
+			<f:validateDoubleRange minimum="1" maximum="1000"/>
+			<f:convertNumber pattern="R$ #0.00" currencySymbol="R$" locale="pt_BR"/>
+		</p:inputText>
+		
+		<p:outputLabel value="Data de Lançamento" for="dataLancamento" />
+		<p:calendar id="dataLancamento" value="#{livroBean.livro.dataLancamento.time}"
+		pattern="dd/MM/yyyy HH:mm" timeZone="America/Sao_Paulo" mask="true" />
+		
+		</p:panelGrid>
+	</p:fieldset>
+	
+	<p:fieldset legend="Dados do Autor">
+	<p:panelGrid columns="4">
+		<p:outputLabel value="Selecione Autor:" for="autor" />
+		<p:selectOneMenu value="#{livroBean.autorId}" id="autor">
+			<f:selectItems value="#{livroBean.autores}" itemLabel="#{autor.nome}" var="autor" itemValue="#{autor.id}"/>
+		</p:selectOneMenu>
+		<p:commandButton  value="Gravar Autor" action="#{livroBean.gravarAutor}" process="@this autor" update="@form"/>
+			
+	<p:commandLink action="#{livroBean.formAutor}" value="Cadastrar novo Autor" immediate="true" update="@all"/>
+	</p:panelGrid>
+	
+	<p:dataTable value="#{livroBean.autoresDoLivro}" var="autor" id="tabelaAutores" emptyMessage="Nenhum autor selecionado" rendered="#{!empty livroBean.autoresDoLivro}">
+			<p:column headerText="Autor">
+				<h:outputText value="#{autor.nome}" />
+			</p:column>
+			<p:column headerText="Ação">
+				<p:commandButton id="cmlRemoverAutor" action="#{livroBean.removerAutor(autor)}"
+				 icon="fa fa-fw fa-remove" value="Remover" process="@this" update="@form"/>
+			</p:column>
+	</p:dataTable>
+	</p:fieldset>
+		
+	<p:commandButton value="Gravar" action="#{livroBean.gravar()}" process="@form" update="@form"/>
+		
+		<p:dataTable id="tabelaLivros" value="#{livroBean.livros}" var="livro" paginator="true" rows="5">
+			<f:facet name="header">Livros</f:facet>
+			<p:column headerText="Título" sortBy="#{livro.titulo}" filterBy="#{livro.titulo}" filterMatchMode="startsWith">
+				<h:outputText value="#{livro.titulo}" />
+			</p:column>
+
+			<p:column headerText="ISBN" sortBy="#{livro.isbn}" filterBy="#{livro.isbn}" filterMatchMode="contains">
+				<h:outputText value="#{livro.isbn}" />
+			</p:column>
+
+			<p:column headerText="Preço" sortBy="#{livro.preco}" filterBy="#{livro.preco}" filterFunction="#{livroBean.precoEhMenor}">
+				<h:outputText value="#{livro.preco}" />
+			</p:column>
+
+			<p:column headerText="Data" sortBy="#{livro.dataLancamento.time}" filterBy="#{livro.dataLancamento.time}" filterMatchMode="contains">
+				<h:outputText value="#{livro.dataLancamento.time}">
+					<f:convertDateTime pattern="dd/MM/yyyy HH:mm"
+						timeZone="America/Sao_Paulo" />
+				</h:outputText>
+			</p:column>
+
+			<p:column headerText="Remover">
+				<h:commandLink id="cmlRemoverLivro" action="#{livroBean.remover(livro)}" value="Remover">
+					<f:ajax execute="@this" render="@form"></f:ajax>
+				</h:commandLink>
+			</p:column>
+			<p:column headerText="Alterar">
+				<h:commandLink id="cmlAlterarLivro" value="Alterar" action="#{livroBean.carregarLivro(livro)}">
+					<f:ajax execute="@this" render="@form"></f:ajax>
+				</h:commandLink>
+			</p:column>
+		</p:dataTable>
+		
+	</h:form>
+	</ui:define>
+</ui:composition>
+
+</html>
